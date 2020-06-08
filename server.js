@@ -1,10 +1,10 @@
 'use strict'
 
-const express = requires('express');
+const express = require('express');
 const app = express();
 
 require('dotenv').config();
-app.use(express.static('./public'));
+app.use(express.static('/'));
 
 const PORT = process.env.PORT;
 
