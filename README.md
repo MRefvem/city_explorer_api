@@ -19,3 +19,4 @@
 
 ## Credits and Collaborations
 - Christopher Hamersly
+- Lulu Sevignon
