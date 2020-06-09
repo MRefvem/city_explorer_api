@@ -18,7 +18,6 @@ app.use(cors());
 
 
 // API FUNCTIONS
-
 app.get('/location', (request, response) => {
   try {
     const search_query = request.query.city;
