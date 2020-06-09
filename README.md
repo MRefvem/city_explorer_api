@@ -20,3 +20,5 @@
 ## Credits and Collaborations
 - Christopher Hamersly
 - Lulu Sevignon
+
+![Whiteboard Lab 07](whiteboard-lab-07.png)
