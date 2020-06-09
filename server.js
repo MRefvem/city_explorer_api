@@ -1,46 +1,79 @@
-'use strict';
+'use strict';        
 
-// create your server 'mkdir server'
-// Initialize your package.json witn 'npm init
-// Create our dependencies with 'npm init -S express cors dotenv superagent'            
 
-// express library sets up our server
+// DEPENDENCIES
 const express = require('express');
-// bodyguard of our server - tells who is ok to send data to
 const cors = require('cors');
-// superagent goes out into the internet and gets information from APIs
 const superagent = require('superagent');
-// dotenv lets us get our secrets from our .env file
 require('dotenv').config();
 
-// initalizes our express library into our variable called app
+
+// INITIALIZE APP - ESTABLISH PORT
 const app = express();
-// bring in the PORT by using process.env.variable name
 const PORT = process.env.PORT || 3001;
+
+
+// USE CORS
 app.use(cors());
 
+
+// API FUNCTIONS
+
 app.get('/location', (request, response) => {
-  try{
-    let search_query = request.query.city;
+  try {
+    const search_query = request.query.city;
+    const url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${search_query}&format=json`;
 
-    let url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${search_query}&format=json`;
-  
-    // let geoData = require('./data/location.json');
-
-    superagent.get(url)
-      .then(resultsFromSuperAgent => {
+    superagent.get(url).then(resultsFromSuperAgent => {
         let finalObj = new Location(search_query, resultsFromSuperAgent.body[0]);
         response.status(200).send(finalObj);
-      })
-  
-    
-  } catch(err){
+      })  
+  } catch(err) {
     console.log('ERROR', err);
     response.status(500).send('sorry, we messed up');
   }
-
 })
 
+app.get('/weather', (request, response) => {
+  try {
+    const search_query = request.query.search_query;
+    const key = process.env.WEATHER_API_KEY;
+    const url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${search_query}&key=${key}&days=8`;
+
+    superagent.get(url).then(resultsFromSuperAgent => {
+      const data = resultsFromSuperAgent.body.data;
+      console.log(data);
+      const results = data.map(item => new Weather(item));
+      console.log(results);
+      response.status(200).send(results);
+    }) 
+  } catch(err) {
+    console.log('ERROR', err);
+    response.status(500).send('sorry, we messed up');
+  }    
+})
+
+app.get('/trails', (request, response) => {
+  try { 
+    const { latitude, longitude } = request.query;
+    const key = process.env.TRAIL_API_KEY;
+    const url = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&maxDistance=10&key=${key}`;
+    console.log(request.query);
+
+    superagent.get(url)
+      .then(resultsFromSuperAgent => {
+        const data = resultsFromSuperAgent.body.trails;
+        const results = data.map(item => new Trail(item));
+        console.log(results);
+        response.status(200).send(results);
+    }) 
+  } catch(err) {
+    console.log('ERROR', err);
+    response.status(500).send('sorry, we meesed up');
+  }
+})
+
+// CONSTRUCTORS
 function Location(searchQuery, obj){
   this.search_query = searchQuery;
   this.formatted_query = obj.display_name;
@@ -48,56 +81,32 @@ function Location(searchQuery, obj){
   this.longitude = obj.lon;
 }
 
+function Weather(obj){
+  this.forecast = obj.weather.description;
+  this.time = obj.datetime;
+}
 
-app.get('/weather', (request, response) => {
-  try{
-    // line required for day 2
-    // let search_query = request.query.search_query;
-
-    let search_query = request.query.search_query;
-
-    let url = `https://api.weatherbit.io/v2.0/current?city=${search_query}&key=${process.env.WEATHER_API_KEY}`;
-
-    superagent.get(url)
-    .then(resultsFromSuperAgent => {
-      console.log(resultsFromSuperAgent.body);
-      let finalObj = new Weather(resultsFromSuperAgent.body);
-      response.status(200).send(finalObj);
-    })
-
-    // let weatherData = require('./data/weather.json');
-    
-    // let weatherArr = [];
-    // console.log('The weather is', weatherArr);
-    
-    // weatherData.data.forEach(weatherLoop => weatherArr.push(new Weather(weatherLoop)));
-      
-      // response.status(200).send(weatherArr);
-      
-    } catch(err){
-      console.log('ERROR', err);
-      response.status(500).send('sorry, we messed up');
-    }
-    
-  })
-  
-  function Weather(obj){
-    this.forecast = obj.weather.description;
-    this.time = obj.valid_date;
-  }
-
-  app.get('*', (request, response) => {
-    response.status(404).send('sorry, this route does not exist');
-  })
+function Trail(obj){
+  this.name = obj.name;
+  this.location = obj.location;
+  this.length = obj.length;
+  this.stars = obj.stars;
+  this.star_votes = obj.starVotes;
+  this.summary = obj.summary;
+  this.trail_url = obj.url;
+  this.conditions = obj.conditionDetails;
+  this.condition_date = obj.conditionDate.slice(0, 10);
+  this.condition_time = obj.conditionDate.slice(11);
+}
 
 
+// 404
+app.get('*', (request, response) => {
+  response.status(404).send('sorry, this route does not exist');
+})
 
 
-
-  // turn on the lights - move into the house - start the server
-  app.listen(PORT, () => {
-    console.log(`listening on ${PORT}`);
-  })
-
-  // three ways to check if our server is on: npm start, node server.js, nodemon (the best because it continually checks if you make updates)
-  // when you're done with your server make sure to use ^C to shut it off, rather than just closing your terminal, otherwise it'll continue to listen for changes. Kill all node servers: 'pkill node'
+// LISTENER
+app.listen(PORT, () => {
+  console.log(`listening on ${PORT}`);
+})
