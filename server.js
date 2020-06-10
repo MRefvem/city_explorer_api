@@ -6,6 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
 require('dotenv').config();
+const pg = require('pg');
 
 
 // INITIALIZE APP - ESTABLISH PORT
@@ -13,25 +14,59 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 
+// SQL SETTINGS
+const client = new pg.Client(process.env.DATABASE_URL);
+client.on('error', err => console.error(err));
+
+
 // USE CORS
 app.use(cors());
+
+
+// // SQL FUNCTION
+// // NOTES 6/10 for LAB 8 DEMO
+// app.get('/add', (request, response) => {
+//   // collect information to add to our database
+//   console.log('on the add route', request.query);
+//   let first = request.query.first;
+//   let last = request.query.last;
+
+//   let sqlQuery = 'INSERT INTO people (first_name, last_name) VALUES ($1, $2);';
+//   let safeValue = [first, last];
+
+//   client.query(sqlQuery, safeValue)
+//   .then(() => {})
+//   .catch()
+// })
+
+// app.get('/select', (request, response) => {
+//   // see everyone in the database to see them on the front end
+//   let sqlQuery = 'SELECT * FROM people;';
+
+//   client.query(sqlQuery)
+//     .then(sqlResults => {
+//       console.log(sqlResults.rows);
+//       response.status(200).send(sqlResults.rows);
+//     })
+//     .catch()
+// })
 
 
 // API FUNCTIONS
 app.get('/location', (request, response) => {
   try {
-    const search_query = request.query.city;
-    const url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${search_query}&format=json`;
+    const city = request.query.city;
+    const url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${city}&format=json`;
 
     superagent.get(url).then(resultsFromSuperAgent => {
-        let finalObj = new Location(search_query, resultsFromSuperAgent.body[0]);
+        let finalObj = new Location(city, resultsFromSuperAgent.body[0]);
         response.status(200).send(finalObj);
       })  
   } catch(err) {
     console.log('ERROR', err);
     response.status(500).send('sorry, we messed up');
   }
-})
+});
 
 app.get('/weather', (request, response) => {
   try {
@@ -50,7 +85,7 @@ app.get('/weather', (request, response) => {
     console.log('ERROR', err);
     response.status(500).send('sorry, we messed up');
   }    
-})
+});
 
 app.get('/trails', (request, response) => {
   try { 
@@ -68,9 +103,9 @@ app.get('/trails', (request, response) => {
     }) 
   } catch(err) {
     console.log('ERROR', err);
-    response.status(500).send('sorry, we meesed up');
+    response.status(500).send('sorry, we messed up');
   }
-})
+});
 
 // CONSTRUCTORS
 function Location(searchQuery, obj){
@@ -78,12 +113,12 @@ function Location(searchQuery, obj){
   this.formatted_query = obj.display_name;
   this.latitude = obj.lat;
   this.longitude = obj.lon;
-}
+};
 
 function Weather(obj){
   this.forecast = obj.weather.description;
   this.time = obj.datetime;
-}
+};
 
 function Trail(obj){
   this.name = obj.name;
@@ -96,16 +131,25 @@ function Trail(obj){
   this.conditions = obj.conditionDetails;
   this.condition_date = obj.conditionDate.slice(0, 10);
   this.condition_time = obj.conditionDate.slice(11);
-}
+};
 
 
 // 404
 app.get('*', (request, response) => {
   response.status(404).send('sorry, this route does not exist');
+});
+
+
+// CONNECT CLIENT
+client.connect()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`listening on ${PORT}`);
+    })
 })
 
 
-// LISTENER
+// PORT LISTENER
 app.listen(PORT, () => {
   console.log(`listening on ${PORT}`);
-})
+});
