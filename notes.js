@@ -85,7 +85,7 @@ app.get('/weather', (request, response) => {
     console.log(`listening on ${PORT}`);
   })
 
-  // three ways to start our server is on: npm start, node server.js, nodemon (the best because it continually checks if you make updates)
+  // three ways to start our server: npm start, node server.js, nodemon (the best because it continually checks if you make updates)
   // when you're done with your server make sure to use ^C to shut it off, rather than just closing your terminal, otherwise it'll continue to listen for changes. Kill all node servers: 'pkill node'
 
 
