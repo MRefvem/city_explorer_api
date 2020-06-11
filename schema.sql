@@ -1,15 +1,12 @@
-DROP TABLE IF EXISTS location;
+DROP TABLE IF EXISTS locations;
 
-CREATE TABLE location (
+CREATE TABLE locations (
   id SERIAL PRIMARY KEY,
-  first_name VARCHAR(255),
-  last_name VARCHAR(255)
+  search_query VARCHAR(255),
+  formatted_query VARCHAR(255),
+  latitude NUMERIC(10, 7),
+  longitude NUMERIC(10, 7)
 );
 
-INSERT INTO people (first_name, last_name) VALUES ('Diane', 'Stephani');
-SELECT * FROM people;
-
-this.search_query = searchQuery;
-  this.formatted_query = obj.display_name;
-  this.latitude = obj.lat;
-  this.longitude = obj.lon;
+INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ('los angeles', 'Los Angeles, Los Angeles County, California, USA', '34.0536909', '-118.2427666');
+SELECT * FROM locations;
