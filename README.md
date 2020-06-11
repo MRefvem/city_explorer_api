@@ -22,3 +22,4 @@
 - Lulu Sevignon
 
 ![Whiteboard Lab 07](whiteboard-lab-07.png)
+![Whiteboard Lab 09](whiteboard-lab-09.png)
