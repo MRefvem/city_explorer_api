@@ -37,35 +37,6 @@ app.get('/add', (request, response) => {
   .catch()
 })
 
-//  NEED
-
-
-
-// app.get('/select', (request, response) => {
-//   let sqlQuery = 'SELECT * FROM locations;';
-//   try {
-//     const city = request.query.city;
-//     const url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${city}&format=json`;
-
-
-//       if (request.query === sqlQuery) {
-//         client.query(sqlQuery)
-//           .then(sqlResults => {
-//             console.log(sqlResults.rows);
-//             response.status(200).send(sqlResults.rows);
-//           })
-//       } else if (request.query !== sqlQuery) {
-//           superagent.get(url).then(resultsFromSuperAgent => {
-//             let finalObj = new Location(city, resultsFromSuperAgent.body[0]);
-//             response.status(200).send(finalObj);
-//           }); 
-//       }
-//     } catch(err) {
-//       console.log('ERROR', err);
-//       response.status(500).send('sorry, we messed up');
-//     }
-// })
-
 
 // API FUNCTIONS
 app.get('/location', (request, response) => {
@@ -87,6 +58,9 @@ app.get('/location', (request, response) => {
           superagent.get(url).then(resultsFromSuperAgent => {
             let finalObj = new Location(city, resultsFromSuperAgent.body[0]);
             let sqlQuery = 'INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
+            let safeValue = [city, finalObj.formatted_query, finalObj.latitude, finalObj.longitude];
+
+            client.query(sqlQuery, safeValue);
             response.status(200).send(finalObj);
           })
         }
