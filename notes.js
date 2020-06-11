@@ -1,8 +1,8 @@
 'use strict';
 
-// create your server 'mkdir server'
-// Initialize your package.json witn 'npm init
-// Create our dependencies with 'npm init -S express cors dotenv superagent'            
+// create your directory and server 'mkdir [PROJECT NAME]' & 'server.js'
+// Initialize your package.json witn 'npm init -y'
+// Create our dependencies with 'npm i -S express cors dotenv superagent'
 
 // express library sets up our server
 const express = require('express');
@@ -85,5 +85,38 @@ app.get('/weather', (request, response) => {
     console.log(`listening on ${PORT}`);
   })
 
-  // three ways to check if our server is on: npm start, node server.js, nodemon (the best because it continually checks if you make updates)
+  // three ways to start our server is on: npm start, node server.js, nodemon (the best because it continually checks if you make updates)
   // when you're done with your server make sure to use ^C to shut it off, rather than just closing your terminal, otherwise it'll continue to listen for changes. Kill all node servers: 'pkill node'
+
+
+
+
+// NOTES 6/10 for LAB 8 DEMO
+app.get('/add', (request, response) => {
+  // collect information to add to our database
+  console.log('on the add route', request.query);
+  let first = request.query.first;
+  let last = request.query.last;
+
+  let sqlQuery = 'INSERT INTO people (first_name, last_name) VALUES ($1, $2);';
+  let safeValue = [first, last];
+
+  client.query(sqlQuery, safeValue)
+  .then(() => {})
+  .catch()
+})
+
+app.get('/select', (request, response) => {
+  // see everyone in the database to see them on the front end
+  let sqlQuery = 'SELECT * FROM people;';
+
+  client.query(sqlQuery)
+    .then(sqlResults => {
+      console.log(sqlResults.rows);
+      response.status(200).send(sqlResults.rows);
+    })
+    .catch()
+})
+
+// url: http://localhost:3000/add?first=Daisy&last=Johnson
+// check terminal for console.log. Should read: (on the add route: { first: 'Daisy': last: 'Johnson' })
