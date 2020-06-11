@@ -75,9 +75,7 @@ app.get('/weather', (request, response) => {
 
     superagent.get(url).then(resultsFromSuperAgent => {
       const data = resultsFromSuperAgent.body.data;
-      // console.log('this is the results of weather', data);
       const results = data.map(item => new Weather(item));
-      // console.log(results);
       response.status(200).send(results);
     }) 
   } catch(err) {
@@ -91,13 +89,11 @@ app.get('/trails', (request, response) => {
     const { latitude, longitude } = request.query;
     const key = process.env.TRAIL_API_KEY;
     const url = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&maxDistance=10&key=${key}`;
-    // console.log(request.query);
 
     superagent.get(url)
       .then(resultsFromSuperAgent => {
         const data = resultsFromSuperAgent.body.trails;
         const results = data.map(item => new Trail(item));
-        // console.log(results);
         response.status(200).send(results);
     }) 
   } catch(err) {
@@ -105,6 +101,7 @@ app.get('/trails', (request, response) => {
     response.status(500).send('sorry, we messed up');
   }
 });
+
 
 // CONSTRUCTORS
 function Location(searchQuery, obj){
@@ -146,9 +143,3 @@ client.connect()
       console.log(`listening on ${PORT}`);
     })
 })
-
-
-// PORT LISTENER
-// app.listen(PORT, () => {
-//   console.log(`listening on ${PORT}`);
-// });
