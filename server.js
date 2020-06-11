@@ -36,7 +36,7 @@ app.get('/add', (request, response) => {
   client.query(sqlQuery, safeValue)
   .then(() => {})
   .catch()
-})
+});
 
 
 // CALLING HANDLERS
@@ -52,7 +52,7 @@ app.use('*', handleNotFound);
 function locationHandler(request, response) {
   
   const city = request.query.city;
-  console.log(city);
+  // console.log(city);
   const url = `https://us1.locationiq.com/v1/search.php`;
   
   const queryParams = {
@@ -67,15 +67,15 @@ function locationHandler(request, response) {
   
   client.query(sqlQuery, safeValue) 
   .then(sqlResults => {
-    console.log(sqlQuery, safeValue);
-    console.log(sqlResults);
+    // console.log(sqlQuery, safeValue);
+    // console.log(sqlResults);
     if (sqlResults.rowCount !== 0){
-      console.log(sqlResults.rows);
+      // console.log(sqlResults.rows);
       response.status(200).send(sqlResults.rows[0]);
     } else {
       // Check superagent documentation to find out how to set a header
       superagent.get(url).query(queryParams).then(resultsFromSuperAgent => {
-        console.log('results from superagent', resultsFromSuperAgent.body);
+        // console.log('results from superagent', resultsFromSuperAgent.body);
         const geoData = resultsFromSuperAgent.body[0];
         let finalObj = new Location(city, geoData);
         let sqlQuery = 'INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
@@ -83,7 +83,7 @@ function locationHandler(request, response) {
         
         client.query(sqlQuery, safeValue);
         response.status(200).send(finalObj);
-      })
+      }).catch();
     }
   }).catch(err => console.error(err));
 };
@@ -98,7 +98,7 @@ function weatherHandler(request, response) {
       const data = resultsFromSuperAgent.body.data;
       const results = data.map(item => new Weather(item));
       response.status(200).send(results);
-    }) 
+    }) .catch();
   } catch(err) {
     console.log('ERROR', err);
     response.status(500).send('sorry, we messed up');
@@ -116,7 +116,7 @@ function trailsHandler(request, response) {
       const data = resultsFromSuperAgent.body.trails;
       const results = data.map(item => new Trail(item));
       response.status(200).send(results);
-    }) 
+    }) .catch();
   } catch(err) {
     console.log('ERROR', err);
     response.status(500).send('sorry, we messed up');
@@ -124,55 +124,56 @@ function trailsHandler(request, response) {
 };
       
       
-function restaurantHandler(request, repsonse){
+function restaurantHandler(request, response) {
   console.log('this is our restaurant', request.query);
 
   const page = request.query.page;
+  console.log('page', page);
   const numPerPage = 5;
   const start = (page - 1) * numPerPage; // this allows us to start with the 1-5 and then 5-10 and then 10-15 etc.
 
-  const url = 'https://api.yelp.com/v3/businesses/search';
+  const url =  `https://api.yelp.com/v3/businesses/search?latitude=${request.query.latitude}&longitude=${request.query.longitude}`;
 
   const queryParams = {
-    latitude: request.query.latitude,
     start: start,
-    limit: numPerPage,
-    longitude: request.query.longitude
+    limit: numPerPage
   }
 
   superagent.get(url)
-    // This next line will be slightly different for Yelp, look up documentation for setting key in header
-    .set('user-key', process.env.YELP_API_KEY)
+    .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
     .query(queryParams)
     .then(data => {
-      console.log('data from superagent', data.body);
-      let restaurantArray = data.body.restaurants;
-      console.log('this is my restaurant array', restaurantArray);
+      let restaurantArray = data.body.businesses;
 
       const finalRestaurants = restaurantArray.map(eatery => {
         return new Restaurant(eatery);
       })
+      // page += 1;
+      response.status(200).send(finalRestaurants);
     })
+    .catch();
 };
 
 function moviesHandler(request, response) {
   console.log('this is our movies', request.query);
   try { 
-    const city = request.query.city;
+    const city = request.query.search_query;
     const key = process.env.MOVIE_API_KEY;
-    const url = `https://api.themoviedb.org/3/movie/550?api_key=${key}`;
+    const url = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${city}`;
     
     superagent.get(url)
     .then(resultsFromSuperAgent => {
-      const data = resultsFromSuperAgent.body.trails;
-      const results = data.map(item => new Trail(item));
+      const data = resultsFromSuperAgent.body.results;
+      const results = data.map(item => new Movies(item));
+      // console.log('data', data);
       response.status(200).send(results);
     }) 
+    .catch();
   } catch(err) {
     console.log('ERROR', err);
     response.status(500).send('sorry, we messed up');
+  };
 }
-
 
 
 // CONSTRUCTORS
@@ -212,11 +213,11 @@ function Restaurant(obj){
 function Movies(obj){
   this.title = obj.title;
   this.overview = obj.overview;
-  this.average_votes = obj.average_votes;
-  this.total_votes = obj.total_votes;
-  this.image._url = obj.image_url;
+  this.average_votes = obj.vote_average;
+  this.total_votes = obj.vote_count;
+  this.image_url = obj.backdrop_path;
   this.popularity = obj.popularity;
-  this.released_on = obj.released_on;
+  this.released_on = obj.release_date;
 };
       
       
@@ -227,9 +228,8 @@ function handleNotFound(request, response) {
 
 
 // CONNECT CLIENT
-client.connect()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`listening on ${PORT}`);
-    })
+client.connect().then(() => {
+  app.listen(PORT, () => {
+    console.log(`listening on ${PORT}`);
+  })
 })
