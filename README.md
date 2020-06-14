@@ -18,8 +18,12 @@
 01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
 
 ## Credits and Collaborations
-- Christopher Hamersly
-- Lulu Sevignon
+- Christopher Hamersly (Lab 6)
+- Lulu Sevignon (Lab 7)
+- Robert Carter (Lab 8)
+- Jonathon Lee (lab 9)
+- Leah Russo (Lab 10)
 
 ![Whiteboard Lab 07](whiteboard-lab-07.png)
 ![Whiteboard Lab 09](whiteboard-lab-09.png)
+![Whiteboard Lab 10](whiteboard-lab-10.png)
