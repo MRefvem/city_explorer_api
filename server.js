@@ -26,7 +26,6 @@ app.use(cors());
 
 // SQL FUNCTION
 app.get('/add', (request, response) => {
-  // collect information to add to our database
   console.log('on the add route', request.query);
   let city = request.query.city;
 
@@ -67,15 +66,10 @@ function locationHandler(request, response) {
   
   client.query(sqlQuery, safeValue) 
   .then(sqlResults => {
-    // console.log(sqlQuery, safeValue);
-    // console.log(sqlResults);
     if (sqlResults.rowCount !== 0){
-      // console.log(sqlResults.rows);
       response.status(200).send(sqlResults.rows[0]);
     } else {
-      // Check superagent documentation to find out how to set a header
       superagent.get(url).query(queryParams).then(resultsFromSuperAgent => {
-        // console.log('results from superagent', resultsFromSuperAgent.body);
         const geoData = resultsFromSuperAgent.body[0];
         let finalObj = new Location(city, geoData);
         let sqlQuery = 'INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
